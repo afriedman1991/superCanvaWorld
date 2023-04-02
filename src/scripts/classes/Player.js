@@ -1,18 +1,21 @@
 class Player {
 	constructor(c) {
+		// location on the canvas
 		this.position = {
 			x: 100,
 			y: 100
 		}
 		
-		// player physics
+		// physics variables
 		this.speed = 10;
 		this.velocity = {
 			x: 0,
 			y: 0
 		}
-		this.isGrounded = false;
 		this.gravity = 1;
+
+		// a boolean to check if the player is on the ground
+		this.isGrounded = false;
 
 		// player dimensions and sides
 		this.width = 30;
