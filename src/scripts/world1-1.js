@@ -56,21 +56,13 @@ const isOnTopOfPlatform = ({ object, platform }) => {
 		object.sides.left <= platform.sides.right); // and the left side of the object is to the left of the right side of the platform
 }
 
-/**
- * 
-	return (object1.velocity.y > 0 &&
-		object1.sides.bottom <= object2.sides.top && // if the bottom of the object1 is above the top of the object2
-		object1.sides.bottom + object1.velocity.y >= object2.sides.top && // and the bottom of the object1 is still above the top of the object2 after the next update
-		object1.sides.right >= object2.sides.left && // and the right side of the object1 is to the right of the left side of the object2
-		object1.sides.left <= object2.sides.right); // and the left side of the object1 is to the left of the right side of the object2
- */
-
+// collision detection for the sides of any two objects
 const collisionTop = ({ object1, object2 }) => {
 	return (
-		object1.position.y + object1.height <= object2.position.y &&
-		object1.position.y + object1.height + object1.velocity.y >= object2.position.y &&
-		object1.position.x + object1.width >= object2.position.x &&
-		object1.position.x <= object2.position.x + object2.width
+		object1.sides.bottom <= object2.sides.top &&
+		object1.sides.bottom + object1.velocity.y >= object2.sides.top &&
+		object1.sides.right >= object2.sides.left &&
+		object1.sides.left <= object2.sides.right
 	);
 }
 
@@ -78,15 +70,34 @@ const collisionTop = ({ object1, object2 }) => {
 const init = async() => {
 	player = new Player(c);
 	player.isGrounded = false;
-	goombas = [new Enemy(c, { position: {
-			x: 800,
-			y: 100
-		},
-		velocity: {
-			x: -0.3,
-			y: 0
-		} }
-	)];
+	goombas = [
+		new Enemy(c, { position: {
+				x: 800,
+				y: 100
+			},
+			velocity: {
+				x: -0.3,
+				y: 0
+			},
+			distance: {
+				limit: 200,
+				traveled: 0
+			} }
+		),
+		new Enemy(c, { position: {
+				x: 1400,
+				y: 100
+			},
+			velocity: {
+				x: -0.3,
+				y: 0
+			},
+			distance: {
+				limit: 50,
+				traveled: 0
+			} }
+		)
+	];
 
 	// location of the first platform on the x-axis
 	initialPlatformLocation = -1;
@@ -143,7 +154,8 @@ const init = async() => {
 	addKeyDownListener(player, keys);
 	addKeyUpListener(keys);
 }
-
+// simulate (not 'update') -> draw -> repeat
+// how to implememnt my own particle system in C.
 const animate = () => {
 	window.requestAnimationFrame(animate);
 	c.clearRect(0, 0, canvas.width, canvas.height);
@@ -161,27 +173,26 @@ const animate = () => {
 
 	// draw all goombas on the canvas, and update their position
 	goombas.forEach((goomba, index) => {
-		goomba.update();
 
 		// check if the player is colliding with the goomba
 		if (collisionTop({ object1: player, object2: goomba })) {
 			player.velocity.y -= 25; // make the player bounce
 
 			// prevent unstyled content from flashing when removing goomba
-			setTimeout(() => {
+			// setTimeout(() => {
 				goombas.splice(index, 1); // remove the goomba from the `goombas` array
-			}, 0);
+			// }, 0);
 		} else if (
-			player.position.x + player.width >= goomba.position.x && // if the right side of the player collides with the left side of the goomba
-			player.position.x <= goomba.position.x + goomba.width && // if the left side of the player collides right the right side of the goomba
-			player.position.y + player.height >= goomba.position.y // if the top of the player collides with the bottom of the goomba
+			player.sides.right >= goomba.sides.left && // if the right side of the player collides with the left side of the goomba
+			player.left <= goomba.sides.right && // if the left side of the player collides right the right side of the goomba
+			player.sides.bottom >= goomba.sides.top // if the top of the player collides with the bottom of the goomba
 		) {
 			init(); // reset the game if the player collides with the goomba
 		}
+		goomba.update();
 	});
 
-	// draw the player on the canvas and update their position
-	player.draw();
+	// draw update the player's position
 	player.update();
 
 	player.velocity.x = 0;

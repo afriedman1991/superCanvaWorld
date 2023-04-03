@@ -21,6 +21,7 @@ class Player {
 		this.width = 30;
 		this.height = 30;
 		this.sides = {
+			top: this.position.y,
 			bottom: this.position.y + this.height,
 			right: this.position.x + this.width,
 			left: this.position.x,
@@ -37,9 +38,11 @@ class Player {
 	}
 
 	update() {
+		this.draw();
 		// update player position
 		this.position.x += this.velocity.x;
 		this.position.y += this.velocity.y;
+		this.sides.top = this.position.y;
 		this.sides.bottom = this.position.y + this.height;
 		this.sides.right = this.position.x + this.width;
 		this.sides.left = this.position.x;
